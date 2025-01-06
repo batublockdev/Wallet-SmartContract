@@ -1,66 +1,112 @@
-## Foundry
+# Solidity Wallet Contract
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is a smart contract that implements a wallet on the Ethereum blockchain where users can deposit funds, but only the owner can withdraw or transfer funds. The contract is written in Solidity and tested using **Foundry**.
 
-Foundry consists of:
+## Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- **Deposit**: Users can deposit Ether into the contract.
+- **Withdraw**: Only the owner can withdraw Ether from the contract.
+- **Transfer**: Only the owner can transfer Ether from the contract to another address.
+- **Owner Restrictions**: The contract enforces that only the owner can perform withdrawal and transfer operations.
 
-## Documentation
+## Prerequisites
 
-https://book.getfoundry.sh/
+Before getting started, ensure that you have the following installed:
 
-## Usage
+- **Foundry**: A fast, portable, and modular toolkit for Ethereum development.
+  - Install Foundry using the following commands:
+    ```bash
+    curl -L https://foundry.paradigm.xyz | bash
+    foundryup
+    ```
 
-### Build
+- **Solidity**: The version of Solidity you're working with should be compatible with your contract.
 
-```shell
-$ forge build
+## Project Setup
+
+1. Clone the repository to your local machine:
+
+    ```bash
+    git clone https://github.com/batublockdev/Wallet-SmartContract.git
+    cd Wallet-SmartContract-Solidity
+    ```
+
+2. Install Foundry dependencies (if applicable):
+
+    ```bash
+    forge install
+    ```
+
+3. **Configure Foundry**: Ensure the correct Solidity version and settings are used in `foundry.toml`.
+
+## Contract Code
+
+The main contract code is located in `src/Wallet.sol`. Here is a brief overview of the contract:
+
+### `Wallet.sol`
+
+```solidity
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+error Wallet_NotOwner();
+error Wallet_NotEnoughFunds();
+
+contract Wallet {
+    address public immutable i_owner;
+
+    constructor() {
+        i_owner = msg.sender;
+    }
+
+    function deposit() public payable {}
+
+    modifier onlyOwner() {
+        if (msg.sender != i_owner) revert Wallet_NotOwner();
+        _;
+    }
+
+    modifier EnoughFunds(uint256 amount) {
+        if (address(this).balance < amount) revert Wallet_NotEnoughFunds();
+        _;
+    }
+
+    function withdraw(uint256 amount) public onlyOwner EnoughFunds(amount) {
+        (bool callSuccess, ) = payable(i_owner).call{value: amount}("");
+        require(callSuccess, "Call failedxx");
+    }
+
+    function transfer(
+        address to,
+        uint256 amount
+    ) public onlyOwner EnoughFunds(amount) {
+        require(to != address(0), "Invalid address");
+        (bool callSuccess, ) = payable(to).call{value: amount}("");
+        require(callSuccess, "Call failed");
+    }
+
+    function getBalance() public view onlyOwner returns (uint256) {
+        return address(this).balance;
+    }
+
+    fallback() external payable {
+        deposit();
+    }
+
+    receive() external payable {
+        deposit();
+    }
+}
 ```
 
-### Test
 
-```shell
-$ forge test
-```
+## Contributing
 
-### Format
+Pull requests are welcome. For major changes, please open an issue first
+to discuss what you would like to change.
 
-```shell
-$ forge fmt
-```
+Please make sure to update tests as appropriate.
 
-### Gas Snapshots
+## License
 
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+[MIT](https://choosealicense.com/licenses/mit/)
