@@ -4,6 +4,12 @@ pragma solidity ^0.8.18;
 error Wallet_NotOwner();
 error Wallet_NotEnoughFunds();
 
+/**
+ * @title Wallet
+ * @author batublockdev
+ * @notice This contract is a simple wallet that allows the owner to deposit, withdraw, and transfer funds.
+ */
+
 contract Wallet {
     address public immutable i_owner;
 
@@ -11,6 +17,7 @@ contract Wallet {
         i_owner = msg.sender;
     }
 
+    //funtion to deposit funds
     function deposit() public payable {}
 
     modifier onlyOwner() {
@@ -23,11 +30,13 @@ contract Wallet {
         _;
     }
 
+    //funtion to withdraw funds
     function withdraw(uint256 amount) public onlyOwner EnoughFunds(amount) {
         (bool callSuccess, ) = payable(i_owner).call{value: amount}("");
         require(callSuccess, "Call failedxx");
     }
 
+    //funtion to transfer funds
     function transfer(
         address to,
         uint256 amount
