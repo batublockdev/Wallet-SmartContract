@@ -1,0 +1,3 @@
+-include .env
+build:; forge build
+deploy-sepolia:forge script script/DeployWallet.s.sol:DeployWallet --rpc-url $(SEPOLIA_RPC_URL) --acount sepolia_key --sender $(PUBLIC_ADDRESS) --broadcast --verify --etherscan-api-key $(API_KEY) -vvvv
